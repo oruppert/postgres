@@ -1,25 +1,29 @@
-(uiop:define-package :konnekt/postgres/octet-buffer
-  (:use :common-lisp :konnekt/postgres/octet-stream)
+(uiop:define-package :postgres/io/octet-buffer
+  (:use :common-lisp :postgres/io/octet-stream)
   (:export
    #:octet-buffer
    #:buffer-vector
    #:buffer-position))
 
-(in-package :konnekt/postgres/octet-buffer)
+(in-package :postgres/io/octet-buffer)
 
 (defclass octet-buffer (octet-stream)
   ((vector
     :initarg :vector
+    :type (vector (unsigned-byte 8))
     :reader buffer-vector
     :initform (make-array 0
 			  :element-type '(unsigned-byte 8)
 			  :adjustable t
-			  :fill-pointer 0))
+			  :fill-pointer 0)
+    :documentation "The streams underlying octet-vector.")
    (position
     :initarg :position
+    :type unsigned-byte
     :accessor buffer-position
-    :initform 0))
-  (:documentation "An unsigned-byte 8 buffer."))
+    :initform 0
+    :documentation "The octet-vector index for read write operations."))
+  (:documentation "A memory octet-stream."))
 
 (defmethod print-object ((self octet-buffer) stream)
   "Prints the given octet-buffer to stream."
@@ -39,13 +43,32 @@
 	    eof-value
 	    (error "buffer position out of range: ~A" position)))))
 
-(defmethod write-octet ((octet integer) (self octet-buffer))
+(defmethod read-octet-vector (length (octet-buffer octet-buffer))
+  "Reads an octet-vector from the given octet-buffer.
+Note that the returned vector is an array displaced to the vector
+underlying octet-buffer."
+  (with-slots (vector position) octet-buffer
+    (prog1 (make-array length
+		       :element-type '(unsigned-byte 8)
+		       :displaced-to vector
+		       :displaced-index-offset position)
+      (incf position length))))
+
+(defmethod write-octet ((octet integer) (octet-buffer octet-buffer))
   "Writes the given unsigned-byte 8 to octet-buffer."
   (declare (type (unsigned-byte 8) octet))
-  (with-slots (vector position) self
+  (with-slots (vector position) octet-buffer
     (declare (type unsigned-byte position))
     (if (< position (length vector))
 	(setf (aref vector position) octet)
 	(vector-push-extend octet vector))
     (incf position)
     (values)))
+
+(defmethod write-octet-vector (octet-vector (octet-buffer octet-buffer))
+  "Writes the given octet-vector to octet-buffer."
+  (declare (type (vector (unsigned-byte 8) octet-vector)))
+  (loop for octet across octet-vector do (write-octet octet octet-buffer))
+  (values))
+
+

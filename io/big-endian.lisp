@@ -1,5 +1,5 @@
-(uiop:define-package :konnekt/postgres/big-endian
-  (:use :common-lisp :konnekt/postgres/octet-stream)
+(uiop:define-package :postgres/io/big-endian
+  (:use :common-lisp :postgres/io/octet-stream)
   (:export
    #:read-unsigned-byte-8
    #:read-unsigned-byte-16
@@ -18,7 +18,7 @@
    #:write-signed-byte-32
    #:write-signed-byte-64))
 
-(in-package :konnekt/postgres/big-endian)
+(in-package :postgres/io/big-endian)
 
 (defun read-unsigned-byte-8 (octet-stream)
   "Reads an unsigned-byte 8 from the given octet-stream."

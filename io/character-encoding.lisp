@@ -1,70 +1,74 @@
-(uiop:define-package :konnekt/postgres/char-encoding
-    (:use :common-lisp :konnekt/postgres/octet-stream)
+(uiop:define-package :postgres/io/character-encoding
+    (:use :common-lisp :postgres/io/octet-stream)
   (:export
-   #:char-encoding
-   #:char-encoding-us-ascii
-   #:char-encoding-iso-8859-1
-   #:char-encoding-utf-8
-   #:read-char-using-encoding
-   #:write-char-using-encoding
+   #:character-encoding
+   #:character-encoding-us-ascii
+   #:character-encoding-iso-8859-1
+   #:character-encoding-utf-8
+   #:read-character-using-encoding
    #:read-string-using-encoding
+   #:write-character-using-encoding
    #:write-string-using-encoding))
 
-(in-package :konnekt/postgres/char-encoding)
+(in-package :postgres/io/character-encoding)
 
-(defclass char-encoding () ()
+(defclass character-encoding () ()
   (:documentation "Abstract base class of all character encodings."))
 
-(defmethod print-object ((char-encoding char-encoding) stream)
-  "Print the given char-encoding to stream."
-  (format stream "#<~A>" (type-of char-encoding)))
+(defmethod print-object ((character-encoding character-encoding) stream)
+  "Print the given character encoding to stream."
+  (format stream "#<~A>" (type-of character-encoding)))
 
-(defgeneric read-char-using-encoding
-    (octet-stream char-encoding &optional eof-error-p eof-value)
+(defgeneric read-character-using-encoding
+    (octet-stream character-encoding &optional eof-error-p eof-value)
   (:documentation
-   "Reads a character from octet-stream using the given char-encoding."))
+   "Reads a character from octet-stream using the given character encoding."))
 
-(defgeneric write-char-using-encoding (character octet-stream char-encoding)
-  (:documentation
-   "Writes character to octet-stream using the given char-encoding."))
-
-(defun read-string-using-encoding (octet-stream char-encoding)
-  "Reads a string from octet-stream using the given char-encoding."
+(defun read-string-using-encoding (octet-stream character-encoding)
+  "Reads a string from octet-stream using the given character encoding."
   (declare (type octet-stream octet-stream))
-  (declare (type char-encoding char-encoding))
+  (declare (type character-encoding character-encoding))
   (loop with result = (make-array 0
 				  :element-type 'character
 				  :adjustable t
 				  :fill-pointer 0)
 	with null-char = (code-char 0)
-	for char = (read-char-using-encoding
-		    octet-stream char-encoding nil null-char)
+	for char = (read-char-using-encoding octet-stream
+					     character-encoding
+					     nil
+					     null-char)
 	until (char= char null-char)
 	do (vector-push-extend char result)
 	finally (return result)))
 
+(defgeneric write-character-using-encoding (character octet-stream encoding)
+  (:documentation "Writes character to octet-stream using the given encoding."))
+
 (defun write-string-using-encoding
-    (string octet-stream char-encoding &key (null-terminated t))
-  "Writes string to octet-stream using the given char-encoding.
+    (string octet-stream character-encoding &key (null-terminated t))
+  "Writes string to octet-stream using the given character encoding.
 Writes a final zero octet if null-terminated is true."
   (declare (type string string))
   (declare (type octet-stream octet-stream))
-  (declare (type char-encoding char-encoding))
-  (loop for char across string
-	do (write-char-using-encoding char octet-stream char-encoding))
+  (declare (type character-encoding character-encoding))
+  (loop for character across string
+	do (write-character-using-encoding character
+					   octet-stream
+					   character-encoding))
   (when null-terminated
     (write-octet 0 octet-stream))
   (values))
 
 ;;; US-ASCII
-(defclass char-encoding-us-ascii (char-encoding) ()
+(defclass character-encoding-us-ascii (character-encoding) ()
   (:documentation "The us-ascii character encoding."))
 
-(defmethod read-char-using-encoding ((octet-stream octet-stream)
-				     (char-encoding char-encoding-us-ascii)
-				     &optional eof-error-p eof-value)
-  "Reads an us-ascii character from octet-stream."
-  (declare (ignore char-encoding))
+(defmethod read-character-using-encoding
+    ((octet-stream octet-stream)
+     (encoding character-encoding-us-ascii)
+     &optional eof-error-p eof-value)
+  "Reads an us-ascii encoded character from octet-stream."
+  (declare (ignore encoding))
   (let ((octet (read-octet octet-stream nil nil)))
     (if (null octet)
 	(if (null eof-error-p)
@@ -74,11 +78,12 @@ Writes a final zero octet if null-terminated is true."
 	    (code-char octet)
 	    (error "octet ~A is not in the us-ascii range" octet)))))
 
-(defmethod write-char-using-encoding ((character character)
-				      (octet-stream octet-stream)
-				      (char-encoding char-encoding-us-ascii))
+(defmethod write-character-using-encoding
+    ((character character)
+     (octet-stream octet-stream)
+     (character-encoding character-encoding-us-ascii))
   "Writes an us-ascii character to octet-stream."
-  (declare (ignore char-encoding))
+  (declare (ignore character-encoding))
   (let ((char-code (char-code character)))
     (if (< char-code #o200)
 	(write-octet char-code octet-stream)
@@ -86,14 +91,15 @@ Writes a final zero octet if null-terminated is true."
   (values))
 
 ;;; ISO-8859-1
-(defclass char-encoding-iso-8859-1 (char-encoding) ()
+(defclass character-encoding-iso-8859-1 (character-encoding) ()
   (:documentation "The iso-8859-1 character encoding."))
 
-(defmethod read-char-using-encoding ((octet-stream octet-stream)
-				     (char-encoding char-encoding-iso-8859-1)
-				     &optional eof-error-p eof-value)
+(defmethod read-character-using-encoding
+    ((octet-stream octet-stream)
+     (character-encoding character-encoding-iso-8859-1)
+     &optional eof-error-p eof-value)
   "Reads an iso-8859-1 character from octet-stream."
-  (declare (ignore char-encoding))
+  (declare (ignore character-encoding))
   (let ((octet (read-octet octet-stream nil nil)))
     (if (null octet)
 	(if (null eof-error-p)
@@ -101,11 +107,12 @@ Writes a final zero octet if null-terminated is true."
 	    (error "end of stream"))
 	(code-char octet))))
 
-(defmethod write-char-using-encoding ((character character)
-				      (octet-stream octet-stream)
-				      (char-encoding char-encoding-iso-8859-1))
-  "Writes an iso-8859-1 character to octet-stream."
-  (declare (ignore char-encoding))
+(defmethod write-character-using-encoding
+    ((character character)
+     (octet-stream octet-stream)
+     (character-encoding char-encoding-iso-8859-1))
+  "Writes an iso-8859-1 encoded character to octet-stream."
+  (declare (ignore character-encoding))
   (let ((char-code (char-code character)))
     (if (< char-code #o400)
 	(write-octet char-code octet-stream)
@@ -113,14 +120,15 @@ Writes a final zero octet if null-terminated is true."
   (values))
 
 ;;; UTF-8
-(defclass char-encoding-utf-8 (char-encoding) ()
+(defclass character-encoding-utf-8 (character-encoding-utf-8-encoding) ()
   (:documentation "The utf-8 character encoding."))
 
-(defmethod read-char-using-encoding ((octet-stream octet-stream)
-				     (char-encoding char-encoding-utf-8)
-				     &optional eof-error-p eof-value)
+(defmethod read-character-using-encoding
+    ((octet-stream octet-stream)
+     (character-encoding character-encoding-utf-8)
+     &optional eof-error-p eof-value)
   "Reads an utf-8 character from octet-stream."
-  (declare (ignore char-encoding))
+  (declare (ignore character-encoding))
   (let ((octet (read-octet octet-stream nil nil)))
     (if (null octet)
 	(if (null eof-error-p)
@@ -144,11 +152,12 @@ Writes a final zero octet if null-terminated is true."
 		    (setf r (logior (ash r 6) (logand #b111111 (next))))))
 		 (t (error "invalid utf-8 starting octet: ~A" octet))))))))
 
-(defmethod write-char-using-encoding ((character character)
-				      (octet-stream octet-stream)
-				      (char-encoding char-encoding-utf-8))
+(defmethod write-character-using-encoding
+    ((character character)
+     (octet-stream octet-stream)
+     (character-encoding character-encoding-utf-8))
   "Writes an utf-8 character to octet-stream."
-  (declare (ignore char-encoding))
+  (declare (ignore character-encoding))
   ;; https://en.wikipedia.org/wiki/UTF-8 Octal
   (let ((code (char-code character)))
     (cond ((< code #o200)
