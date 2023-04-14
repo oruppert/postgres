@@ -1,5 +1,5 @@
-(uiop:define-package :postgres/io/character-encoding
-    (:use :common-lisp :postgres/io/octet-stream)
+(uiop:define-package :postgres/streams/character-encoding
+    (:use :common-lisp :postgres/streams/octet-stream)
   (:export
    #:character-encoding
    #:character-encoding-us-ascii
@@ -10,7 +10,7 @@
    #:write-character-using-encoding
    #:write-string-using-encoding))
 
-(in-package :postgres/io/character-encoding)
+(in-package :postgres/streams/character-encoding)
 
 (defclass character-encoding () ()
   (:documentation "Abstract base class of all character encodings."))
@@ -24,6 +24,9 @@
   (:documentation
    "Reads a character from octet-stream using the given character encoding."))
 
+(defgeneric write-character-using-encoding (character octet-stream encoding)
+  (:documentation "Writes character to octet-stream using the given encoding."))
+
 (defun read-string-using-encoding (octet-stream character-encoding)
   "Reads a string from octet-stream using the given character encoding."
   (declare (type octet-stream octet-stream))
@@ -33,16 +36,13 @@
 				  :adjustable t
 				  :fill-pointer 0)
 	with null-char = (code-char 0)
-	for char = (read-char-using-encoding octet-stream
-					     character-encoding
-					     nil
-					     null-char)
+	for char = (read-character-using-encoding octet-stream
+						  character-encoding
+						  nil
+						  null-char)
 	until (char= char null-char)
 	do (vector-push-extend char result)
 	finally (return result)))
-
-(defgeneric write-character-using-encoding (character octet-stream encoding)
-  (:documentation "Writes character to octet-stream using the given encoding."))
 
 (defun write-string-using-encoding
     (string octet-stream character-encoding &key (null-terminated t))
@@ -110,7 +110,7 @@ Writes a final zero octet if null-terminated is true."
 (defmethod write-character-using-encoding
     ((character character)
      (octet-stream octet-stream)
-     (character-encoding char-encoding-iso-8859-1))
+     (character-encoding character-encoding-iso-8859-1))
   "Writes an iso-8859-1 encoded character to octet-stream."
   (declare (ignore character-encoding))
   (let ((char-code (char-code character)))

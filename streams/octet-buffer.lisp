@@ -1,11 +1,11 @@
-(uiop:define-package :postgres/io/octet-buffer
-  (:use :common-lisp :postgres/io/octet-stream)
+(uiop:define-package :postgres/streams/octet-buffer
+  (:use :common-lisp :postgres/streams/octet-stream)
   (:export
    #:octet-buffer
    #:buffer-vector
    #:buffer-position))
 
-(in-package :postgres/io/octet-buffer)
+(in-package :postgres/streams/octet-buffer)
 
 (defclass octet-buffer (octet-stream)
   ((vector

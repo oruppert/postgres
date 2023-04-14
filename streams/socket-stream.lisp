@@ -1,9 +1,9 @@
-(uiop:define-package :postgres/io/socket-stream
-  (:use :common-lisp :postgres/io/octet-stream)
+(uiop:define-package :postgres/streams/socket-stream
+  (:use :common-lisp :postgres/streams/octet-stream)
   (:export :socket-stream
 	   :call-with-connected-socket-stream))
 
-(in-package :postgres/io/socket-stream)
+(in-package :postgres/streams/socket-stream)
 
 (defclass socket-stream (octet-stream)
   ((socket
@@ -46,10 +46,10 @@ Closes the socket-stream connection after the function returns."
    (make-array 1 :element-type '(unsigned-byte 8) :initial-element octet)
    socket-stream))
 
-(defmethod write-octet-vector (octet-vector (self socket-stream))
+(defmethod write-octet-vector (octet-vector (socket-stream socket-stream))
   "Writes octet-vector to the given socket-stream."
   (declare (type (vector (unsigned-byte 8)) octet-vector))
-  (with-slots (socket) self
+  (with-slots (socket) socket-stream
     (sb-bsd-sockets:socket-send socket octet-vector nil))
   (values))
 

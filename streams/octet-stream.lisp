@@ -1,4 +1,4 @@
-(uiop:define-package :postgres/io/octet-stream
+(uiop:define-package :postgres/streams/octet-stream
   (:use :common-lisp)
   (:export #:octet-stream
 	   #:read-octet
@@ -6,7 +6,7 @@
 	   #:write-octet
 	   #:write-octet-vector))
 
-(in-package :postgres/io/octet-stream)
+(in-package :postgres/streams/octet-stream)
 
 (defclass octet-stream () ()
   (:documentation "The base class for all octet streams."))
