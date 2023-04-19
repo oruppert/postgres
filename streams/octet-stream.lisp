@@ -23,6 +23,10 @@
 (defgeneric write-octet-vector (octet-vector octet-stream)
   (:documentation "Writes the given octet-vector to octet-stream."))
 
+(defun write-utf-8-string (string octet-vector &optional (null-terminated t)))
+
+
+
 
 
 

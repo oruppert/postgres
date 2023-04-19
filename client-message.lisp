@@ -1,19 +1,13 @@
- (uiop:define-package :konnekt/postgres/client-message
+ (uiop:define-package :postgres/client-message
   (:use :common-lisp
-        :konnekt/postgres/big-endian
-        :konnekt/postgres/char-encoding
-        :konnekt/postgres/octet-buffer
-        :konnekt/postgres/octet-stream)
-  (:export
-   #:client-message
-   #:send-client-message
-   #:write-client-message-to-octet-vector
-   #:startup-message
-   #:simple-query
-   #:sync-message))
+        :postgres/octet-buffer
+        :postgres/octet-stream)
+  (:export))
+
 
 (in-package :konnekt/postgres/client-message)
 
+#+nil
 (defclass client-message ()
   ((message-tag
     :initarg :message-tag
@@ -24,14 +18,21 @@
 octet of the message.  Will be ignored if null."))
   (:documentation "Base class for all postgres client messages."))
 
+#+nil
 (defgeneric send-client-message (client-message output)
   (:documentation "Sends client-message to the given output."))
 
+#+nil
+(defgeneric write-message-body (message octet-stream)
+  (:documentation "Writes the message body to octet-stream."))
+
+#+nil
 (defgeneric write-client-message-body
     (client-message octet-stream char-encoding)
   (:documentation
    "Writes the client-message body to octet-stream using char-encoding."))
 
+#+nil
 (defun write-client-message-to-octet-vector (client-message char-encoding)
   "Writes client-message to a fresh octet vector.
 Message strings will be encoded using the given char-encoding.  The
@@ -57,6 +58,7 @@ message-tag (if any), the size of the message and the message-body."
     ;; return the octet-vector of buffer
     (buffer-vector buffer)))
 
+#+nil
 (defclass startup-message (client-message)
   ((protocol-version-number
     :initform #x30000
@@ -81,6 +83,7 @@ Defaults to database-user if not given."))
 server after a connection is established.  It is the only
 client-message without message-tag."))
 
+#+nil
 (defmethod write-client-message-body ((self startup-message)
 				      (octet-stream octet-stream)
 				      (char-encoding char-encoding))
@@ -94,6 +97,7 @@ client-message without message-tag."))
       (write-string-using-encoding database-name octet-stream char-encoding))
     (write-unsigned-byte-8 0 octet-stream)))
 
+#+nil
 (defclass simple-query (client-message)
   ((string
     :initarg :string
@@ -103,6 +107,7 @@ client-message without message-tag."))
   (:default-initargs :message-tag #\Q)
   (:documentation "A simple-query message."))
 
+#+nil
 (defmethod write-client-message-body ((simple-query simple-query)
 				      (octet-stream octet-stream)
 				      (char-encoding char-encoding))
@@ -111,9 +116,11 @@ client-message without message-tag."))
 			       octet-stream
 			       char-encoding))
 
+#+nil
 (defclass sync-message (client-message) ()
   (:default-initargs :message-tag #\S))
 
+#+nil
 (defmethod write-client-message-body ((sync-message sync-message)
 				      (octet-stream octet-stream)
 				      (char-encoding char-encoding))
