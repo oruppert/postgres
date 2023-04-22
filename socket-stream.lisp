@@ -11,6 +11,7 @@
   ((socket
     :documentation "The socket underlying this socket-stream."
     :reader socket-stream-socket
+    :type sb-bsd-sockets:socket
     :initform (make-instance 'sb-bsd-sockets:socket
 			     :type :stream
 			     :protocol :tcp)))

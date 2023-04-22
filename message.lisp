@@ -13,7 +13,7 @@
 (defgeneric read-message (input)
   (:documentation "Reads a message from the given input.
 Methods of this generic function are always blocking.
-Returns a fresh message."))
+Returns the read message."))
 
 (defgeneric send-message (message output)
   (:documentation "Sends message to the given output.
