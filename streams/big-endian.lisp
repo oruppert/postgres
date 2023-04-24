@@ -1,25 +1,25 @@
-(uiop:define-package :postgres/big-endian
+(uiop:define-package :postgres/streams/big-endian
     (:documentation "Functions for reading and writing big-endian bytes.")
-  (:use :common-lisp :postgres/octet-stream)
-  (:export
-   #:read-unsigned-byte-8
-   #:read-unsigned-byte-16
-   #:read-unsigned-byte-32
-   #:read-unsigned-byte-64
-   #:read-signed-byte-8
-   #:read-signed-byte-16
-   #:read-signed-byte-32
-   #:read-signed-byte-64
-   #:write-unsigned-byte-8
-   #:write-unsigned-byte-16
-   #:write-unsigned-byte-32
-   #:write-unsigned-byte-64
-   #:write-signed-byte-8
-   #:write-signed-byte-16
-   #:write-signed-byte-32
-   #:write-signed-byte-64))
+  (:use :common-lisp)
+  (:use :postgres/streams/octet-stream)
+  (:export :read-unsigned-byte-8)
+  (:export :read-unsigned-byte-16)
+  (:export :read-unsigned-byte-32)
+  (:export :read-unsigned-byte-64)
+  (:export :read-signed-byte-8)
+  (:export :read-signed-byte-16)
+  (:export :read-signed-byte-32)
+  (:export :read-signed-byte-64)
+  (:export :write-unsigned-byte-8)
+  (:export :write-unsigned-byte-16)
+  (:export :write-unsigned-byte-32)
+  (:export :write-unsigned-byte-64)
+  (:export :write-signed-byte-8)
+  (:export :write-signed-byte-16)
+  (:export :write-signed-byte-32)
+  (:export :write-signed-byte-64))
 
-(in-package :postgres/big-endian)
+(in-package :postgres/streams/big-endian)
 
 (defun read-unsigned-byte-8 (octet-stream)
   "Reads an unsigned-byte 8 from the given octet-stream."

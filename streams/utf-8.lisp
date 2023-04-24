@@ -1,15 +1,13 @@
-(uiop:define-package :postgres/utf-8
+(uiop:define-package :postgres/streams/utf-8
     (:documentation "Functions for reading and writing utf-8.")
-  (:use
-   :common-lisp
-   :postgres/octet-stream)
-  (:export
-   :read-utf-8-char
-   :read-utf-8-string
-   :write-utf-8-char
-   :write-utf-8-string))
+  (:use :common-lisp)
+  (:use :postgres/streams/octet-stream)
+  (:export :read-utf-8-char)
+  (:export :read-utf-8-string)
+  (:export :write-utf-8-char)
+  (:export :write-utf-8-string))
 
-(in-package :postgres/utf-8)
+(in-package :postgres/streams/utf-8)
 
 (defun read-utf-8-char (octet-stream &optional (eof-error-p t) eof-value)
   "Reads an utf-8 character from the given octet-stream."
@@ -17,7 +15,7 @@
     (if (null octet)
 	(if (null eof-error-p)
 	    eof-value
-	    (error "end of stream"))
+	    (error 'octet-stream-eof))
 	(flet ((next ()
 		 (let ((octet (read-octet octet-stream)))
 		   ;; TODO: check invalid continuation byte

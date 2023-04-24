@@ -1,15 +1,15 @@
-(uiop:define-package :postgres/client-message
+(uiop:define-package :postgres/messages/client-message
     (:documentation "Messages send to the database server.")
-  (:use :common-lisp
-	:postgres/big-endian
-	:postgres/message
-	:postgres/octet-buffer
-        :postgres/octet-stream
-	:postgres/utf-8)
-  (:export :client-message
-	   :startup-message))
+  (:use :common-lisp)
+  (:use :postgres/messages/message)
+  (:use :postgres/streams/big-endian)
+  (:use :postgres/streams/octet-buffer)
+  (:use :postgres/streams/octet-stream)
+  (:export :client-message)
+  (:export :write-message)
+  (:export :write-message-body))
 
-(in-package :postgres/client-message)
+(in-package :postgres/messages/client-message)
 
 (defclass client-message (message)
   ((tag
@@ -20,33 +20,37 @@
     :reader message-tag))
   (:documentation "The client-message base class."))
 
-(defmethod send-message :around ((message client-message)
-				 (stream octet-stream))
-  "Writes the whole message to the given stream.
+(defgeneric write-message (message stream)
+  (:documentation "Writes the whole message to the given stream.
 The whole message includes the messasge tag, the message length and
-the message body. Calls the primary method to write the message body.
-That means primary methods must only write the message body."
-  ;; We write to a buffer and then write the buffer to the given
-  ;; stream.  Because we do not know the message length until we call
-  ;; the primary method.
+the message body."))
+
+(defgeneric write-message-body (message stream)
+  (:documentation ""))
+
+(defmethod write-message ((message client-message)
+			  (stream octet-stream))
   (let ((buffer (make-instance 'octet-buffer)))
-    ;; maybe write message tag
-    (when (message-tag message)
-      (let ((octet (char-code (message-tag message))))
-	(write-octet octet buffer)))
-    (let ((start (buffer-position buffer)))
-      ;; write dummy message length to preserve space
-      (write-signed-byte-32 0 buffer)
-      ;; write message body
-      (call-next-method message buffer)
-      ;; write actual message length
-      (let* ((end (buffer-position buffer))
-	     (actual-length (- end start)))
-	(setf (buffer-position buffer) start)
-	(write-signed-byte-32 actual-length buffer)
-	(setf (buffer-position buffer) end)))
-    ;; write buffer to the given stream
+    (write-message message buffer)
     (write-octet-vector (buffer-vector buffer) stream))
+  (values))
+
+(defmethod write-message ((message client-message)
+			  (buffer octet-buffer))
+  (when (message-tag message)
+    (let ((octet (char-code (message-tag message))))
+      (write-octet octet buffer)))
+  (let ((start (buffer-position buffer)))
+    ;; write dummy message length to preserve space
+    (write-signed-byte-32 0 buffer)
+    ;; write message body
+    (write-message-body message buffer)
+    ;; write actual message length
+    (let* ((end (buffer-position buffer))
+	   (actual-length (- end start)))
+      (setf (buffer-position buffer) start)
+      (write-signed-byte-32 actual-length buffer)
+      (setf (buffer-position buffer) end)))
   (values))
 
 (defclass startup-message (client-message)

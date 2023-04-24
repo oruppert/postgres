@@ -1,24 +1,23 @@
-(uiop:define-package :konnekt/postgres/server-message
-  (:use :common-lisp
-	:konnekt/postgres/octet-stream
-	:konnekt/postgres/octet-buffer
-	:konnekt/postgres/char-encoding
-	:konnekt/postgres/big-endian)
-  (:export
-   #:server-message
-   #:read-server-message
-   #:parse-server-message
-   #:parameter-status
-   #:parameter-status-name
-   #:parameter-status-value
-   #:ready-for-query
-   #:authentication
-   #:authentication-ok
-   #:backend-key-data
-   #:backend-key-data-process-id
-   #:backend-key-data-secret-key))
+(uiop:define-package :postgres/messages/server-message
+  (:use :common-lisp)
+  (:use :postgres/streams/octet-stream)
+  (:use :postgres/streams/octet-buffer)
+  (:use :postgres/streams/char-encoding)
+  (:use :postgres/streams/big-endian)
+  (:export :server-message)
+  (:export :read-server-message)
+  (:export :parse-server-message)
+  (:export :parameter-status)
+  (:export :parameter-status-name)
+  (:export :parameter-status-value)
+  (:export :ready-for-query)
+  (:export :authentication)
+  (:export :authentication-ok)
+  (:export :backend-key-data)
+  (:export :backend-key-data-process-id)
+  (:export :backend-key-data-secret-key))
 
-(in-package :konnekt/postgres/server-message)
+(in-package :postgres/messages/server-message)
 
 (defclass server-message () ()
   (:documentation "Abstract base class for all server messages."))

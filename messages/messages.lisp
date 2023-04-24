@@ -1,11 +1,11 @@
-(uiop:define-package :konnekt/postgres/messages/messages
+(uiop:define-package :postgres/messages/messages
   (:use :common-lisp
-	:konnekt/postgres/network/buffer
-	:konnekt/postgres/network/charsets
-	:konnekt/postgres/network/integers
-	:konnekt/postgres/network/sockets
-	:konnekt/postgres/network/generics
-	:konnekt/postgres/network/strings)
+	:postgres/network/buffer
+	:postgres/network/charsets
+	:postgres/network/integers
+	:postgres/network/sockets
+	:postgres/network/generics
+	:postgres/network/strings)
   (:export
    ;; Message Base Class
    #:message
@@ -47,7 +47,7 @@
    #:execute-message
    #:bind-complete))
 
-(in-package :konnekt/postgres/messages/messages)
+(in-package :postgres/messages/messages)
 
 ;;; Message
 (defclass message ()
