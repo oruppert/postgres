@@ -44,6 +44,14 @@ Returns the number of read octets."
       (declare (ignore address))
       (values length))))
 
+(defmethod write-octet-vector (octet-vector (self socket-stream))
+  "Writes the given unsigned-byte 8 vector to octet-stream.
+Returns no values."
+  (declare (type (vector (unsigned-byte 8)) octet-vector))
+  (with-slots (socket) self
+    (sb-bsd-sockets:socket-send socket octet-vector (length octet-vector))
+    (values)))
+
 
 
 
