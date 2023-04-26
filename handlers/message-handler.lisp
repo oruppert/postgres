@@ -1,31 +1,26 @@
-(uiop:define-package :konnekt/postgres/handlers/message-handler
-  (:use :common-lisp
-	:konnekt/postgres/messages/messages)
-  (:export
-   #:message-handler
-   #:handle-message
-   #:abort-message-loop
-   #:message-loop))
+(uiop:define-package :postgres/handlers/message-handler
+    (:documentation "")
+  (:use :common-lisp)
+  (:export :message-handler)
+  (:export :message-handler-run)
+  (:export :handle-message))
 
-(in-package :konnekt/postgres/handlers/message-handler)
+(in-package :postgres/handlers/message-handler)
 
-(defclass handler ()
-  ((running :initform nil :accessor hander-running)))
+(defclass message-handler () ()
+  (:documentation "The message-handler protocol class."))
+
+(defgeneric message-handler-run (database handler)
+  (:documentation "Run message processing loop.
+Methods of this function may or may not return."))
+
+(defgeneric handle-message (database handler message)
+  (:documentation "Handles the given message."))
 
 
-(defclass message-handler () ())
 
-(defgeneric handle-message (connection message-handler message))
 
-(defun abort-message-loop (&rest values)
-  (throw 'message-loop-done values))
 
-#+nil
-(defun message-loop (connection message-handler)
-  (values-list
-   (catch 'message-loop-done
-     (loop with stream = (connection-socket connection)
-	   for charset = (connection-charset connection)
-	   for message = (read-message stream charset)
-	   do (handle-message connection message-handler message)))))
+
+
 
