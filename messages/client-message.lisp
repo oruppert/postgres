@@ -6,7 +6,6 @@
   (:use :postgres/streams/octet-buffer)
   (:use :postgres/streams/octet-stream)
   (:export :client-message)
-  (:export :write-message)
   (:export :write-message-body))
 
 (in-package :postgres/messages/client-message)
@@ -16,17 +15,18 @@
     :documentation "The first byte of the message or null."
     :type (or character null)
     :initarg :tag
-    :initform (error "No tag given.")
-    :reader message-tag))
+    :initform (error "No tag given.")))
   (:documentation "The client-message base class."))
 
-(defgeneric write-message (message stream)
-  (:documentation "Writes the whole message to the given stream.
-The whole message includes the messasge tag, the message length and
-the message body."))
-
 (defgeneric write-message-body (message stream)
-  (:documentation ""))
+  (:documentation "Writes the message body to the given stream."))
+
+(defmethod write-message-body ((message client-message)
+			       (stream octet-stream))
+  "Default implementation that does nothing."
+  (declare (ignore message))
+  (declare (ignore stream))
+  (values))
 
 (defmethod write-message ((message client-message)
 			  (stream octet-stream))
@@ -37,9 +37,11 @@ the message body."))
 
 (defmethod write-message ((message client-message)
 			  (buffer octet-buffer))
-  (when (message-tag message)
-    (let ((octet (char-code (message-tag message))))
-      (write-octet octet buffer)))
+  ;; Maybe write message tag.
+  (with-slots (tag) message
+    (unless (null tag)
+      (let ((octet (char-code tag)))
+	(write-octet octet buffer))))
   (let ((start (buffer-position buffer)))
     ;; write dummy message length to preserve space
     (write-signed-byte-32 0 buffer)
@@ -52,41 +54,3 @@ the message body."))
       (write-signed-byte-32 actual-length buffer)
       (setf (buffer-position buffer) end)))
   (values))
-
-(defclass startup-message (client-message)
-  ((protocol-version-number
-    :documentation "The protocol version number.  We support version 3."
-    :initform #x30000
-    :type (signed-byte 32))
-   (database-user
-    :documentation "The name of the database user."
-    :initarg :database-user
-    :type string
-    :initform (error "No database-user given."))
-   (database-name
-    :documentation "The name of the database to connect to."
-    :initarg :database-name
-    :initform nil
-    :type (or string null)))
-  (:default-initargs
-   ;; no message tag
-   :tag nil)
-  (:documentation
-   "The startup message is the first message send by the client to the
-server after a connection is established.  It is the only
-client-message without message-tag."))
-
-(defmethod send-message ((startup-message startup-message)
-			 (stream octet-stream))
-  "Writes the startup-message body to the given stream."
-  (with-slots (protocol-version-number database-user database-name)
-      startup-message
-    (write-signed-byte-32 protocol-version-number stream)
-    (write-utf-8-string "user" stream)
-    (write-utf-8-string database-user stream)
-    (unless (null database-name)
-      (write-utf-8-string "database" stream)
-      (write-utf-8-string database-name stream))
-    (write-unsigned-byte-8 0 stream)))
-
-

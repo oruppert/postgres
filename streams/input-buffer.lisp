@@ -25,11 +25,13 @@
   (declare (ignore eof-error-p))
   (declare (ignore eof-value))
   (with-slots (vector position fill-pointer) self
+    ;; Ensure buffer contains data.
     (when (= position fill-pointer)
       (setf position 0)
       (loop do (setf fill-pointer
 		     (read-available-octets vector self))
 	    while (zerop fill-pointer)))
+    ;; Return the current octet and increment position.
     (prog1 (aref vector position)
       (incf position))))
 

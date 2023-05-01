@@ -1,7 +1,7 @@
 (uiop:define-package :postgres/database-connection
-  (:use :common-lisp
-	:postgres/message
-	:postgres/socket-stream))
+  (:use :common-lisp)
+  (:use :postgres/messages/message)
+  (:use :postgres/streams/socket-stream))
 
 (in-package :postgres/database-connection)
 
@@ -9,6 +9,20 @@
   ((socket-stream :initform (make-instance 'socket-stream))
    (output-mailbox :initform (sb-concurrency:make-mailbox))
    (output-thread)))
+
+(defun message-writer (database-connection)
+  (with-slots (socket-stream output-queue) database-connection
+    (loop
+      (let ((message (sb-concurrency:receive-message output-queue
+						     :timeout 0.05)))
+	(write-message
+	 (if (null message)
+	     (make-instance 'fl
+	  (
+	  when (null message)
+
+	  do (send-message message socket-stream)))
+
 
 (defun output-loop (database-connection)
   "Writes messages from the output-queue to the socket-stream."

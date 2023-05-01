@@ -11,7 +11,7 @@
 
 (defclass socket-stream (input-buffer octet-stream)
   ((socket
-    :documentation "The socket underlying this socket-stream."
+    :documentation "The underlying socket."
     :type sb-bsd-sockets:socket
     :initform (make-instance 'sb-bsd-sockets:socket
 			     :type :stream

@@ -1,5 +1,5 @@
 (uiop:define-package :postgres/messages/message
-    (:documentation "Interface for sending and receiving messages.")
+    (:documentation "Protocol for message input and output.")
   (:use :common-lisp)
   (:export :message)
   (:export :receive-message)
@@ -10,11 +10,10 @@
 (in-package :postgres/messages/message)
 
 (defclass message () ()
-  (:documentation "Message interface class."))
+  (:documentation "Message protocol class."))
 
 (defgeneric send-message (message output)
   (:documentation "Sends message to the given output.
---Methods of this generic function may be non-blocking.
 Methods of this generic function are non-blocking.
 Returns no values."))
 

@@ -1,64 +1,16 @@
 (uiop:define-package :postgres/messages/server-message
-  (:use :common-lisp)
-  (:use :postgres/streams/octet-stream)
-  (:use :postgres/streams/octet-buffer)
-  (:use :postgres/streams/char-encoding)
-  (:use :postgres/streams/big-endian)
-  (:export :server-message)
-  (:export :read-server-message)
-  (:export :parse-server-message)
-  (:export :parameter-status)
-  (:export :parameter-status-name)
-  (:export :parameter-status-value)
-  (:export :ready-for-query)
-  (:export :authentication)
-  (:export :authentication-ok)
-  (:export :backend-key-data)
-  (:export :backend-key-data-process-id)
-  (:export :backend-key-data-secret-key))
+  (:use :common-lisp))
 
 (in-package :postgres/messages/server-message)
 
-(defclass server-message () ()
+(defclass server-message (message) ()
   (:documentation "Abstract base class for all server messages."))
 
-(defgeneric read-server-message (input)
-  (:documentation "Reads a server-message from the given input."))
-
-(defgeneric parse-server-message (message-tag octet-vector char-encoding)
-  (:documentation "Parses a server-message.  The message-tag character
-identifies the message.  The octet-vector contains the message-body
-bytes.  The given char-encoding is used to read strings from the
-octet-vector."))
-
-(defclass parameter-status (server-message)
-  ((name :initarg :name :reader parameter-status-name)
-   (value :initarg :value :reader parameter-status-value))
-  (:documentation "A parameter-status message.
-Used by the server to inform the client about parameter values and
-parameter changes.  For example client encoding and server encoding."))
-
-(defmethod print-object ((parameter-status parameter-status) stream)
-  "Prints the given parameter-status message to stream."
-  (print-unreadable-object (parameter-status stream :type t)
-    (format stream "~A: ~A"
-	    (parameter-status-name parameter-status)
-	    (parameter-status-value parameter-status))))
-
-(defmethod parse-server-message ((message-tag (eql #\S))
-				 (octet-vector vector)
-				 (char-encoding char-encoding))
-  "Parses a parameter-status message."
-  (declare (type (vector (unsigned-byte 8)) octet-vector))
-  (declare (ignore message-tag))
-  (let ((buffer (make-instance 'octet-buffer :vector octet-vector)))
-    (make-instance 'parameter-status
-		   :name (read-string-using-encoding buffer char-encoding)
-		   :value (read-string-using-encoding buffer char-encoding))))
-
+#+nil
 (defclass ready-for-query (server-message) ()
   (:documentation "Send by the server when it is ready to receive requests."))
 
+#+nil
 (defmethod parse-server-message ((message-tag (eql #\Z))
 				 (octet-vector vector)
 				 (char-encoding char-encoding))
@@ -69,12 +21,15 @@ parameter changes.  For example client encoding and server encoding."))
   (declare (ignore char-encoding))
   (make-instance 'ready-for-query))
 
+#+nil
 (defclass authentication (server-message) ()
   (:documentation "The abstract base class of all authentication messages."))
 
+#+nil
 (defclass authentication-ok (authentication) ()
   (:documentation "Send by the server when client authentication is done."))
 
+#+nil
 (defmethod parse-server-message ((message-tag (eql #\R))
 				 (octet-vector vector)
 				 (char-encoding char-encoding))
@@ -86,11 +41,13 @@ parameter changes.  For example client encoding and server encoding."))
     (ecase (read-signed-byte-32 buffer)
       (0 (make-instance 'authentication-ok)))))
 
+#+nil
 (defclass backend-key-data (server-message)
   ((process-id :initarg :process-id :reader backend-key-data-process-id)
    (secret-key :initarg :secret-key :reader backend-key-data-secret-key))
   (:documentation "Used to issued cancel requests later."))
 
+#+nil
 (defmethod print-object ((backend-key-data backend-key-data) stream)
   "Prints the given backend-key-data to stream."
   (print-unreadable-object (backend-key-data stream :type t)
@@ -98,6 +55,7 @@ parameter changes.  For example client encoding and server encoding."))
 	    (backend-key-data-process-id backend-key-data)
 	    (backend-key-data-secret-key backend-key-data))))
 
+#+nil
 (defmethod parse-server-message ((message-tag (eql #\K))
 				 (octet-vector vector)
 				 (char-encoding char-encoding))
